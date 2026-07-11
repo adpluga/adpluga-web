@@ -1,0 +1,66 @@
+{
+  "name": "@adpluga/web",
+  "version": "0.2.0",
+  "description": "adPluga Web SDK — Web Component and typed client for /v1/serve, /v1/track and /v1/sdk/telemetry.",
+  "license": "UNLICENSED",
+  "homepage": "https://github.com/adpluga/adpluga-web#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/adpluga/adpluga-web.git"
+  },
+  "bugs": {
+    "url": "https://github.com/adpluga/adpluga-web/issues"
+  },
+  "type": "module",
+  "sideEffects": [
+    "./dist/element.js",
+    "./dist/element.cjs",
+    "./dist/element.global.js"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./element": {
+      "types": "./dist/element.d.ts",
+      "import": "./dist/element.js",
+      "require": "./dist/element.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint \"src/**/*.ts\"",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.30",
+    "@typescript-eslint/eslint-plugin": "^7.4.0",
+    "@typescript-eslint/parser": "^7.4.0",
+    "@vitest/coverage-v8": "^1.4.0",
+    "eslint": "^8.57.0",
+    "happy-dom": "^14.3.9",
+    "tsup": "^8.0.2",
+    "typescript": "^5.4.3",
+    "vitest": "^1.4.0"
+  },
+  "engines": {
+    "node": ">=18.17.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}
