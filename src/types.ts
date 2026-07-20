@@ -4,7 +4,7 @@ export type CreativeType = "image" | "html" | "native" | "video_vast" | "audio";
 
 export type FormatId = "display" | "native" | "video" | "video_rewarded" | "vast";
 
-export type EventName = "impression" | "click" | "conversion";
+export type EventName = "impression" | "click" | "conversion" | "viewable";
 
 export type SdkEventType =
   | "init"

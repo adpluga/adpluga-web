@@ -1,6 +1,6 @@
 {
   "name": "@adpluga/web",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "adPluga Web SDK — Web Component and typed client for /v1/serve, /v1/track and /v1/sdk/telemetry.",
   "license": "UNLICENSED",
   "homepage": "https://github.com/adpluga/adpluga-web#readme",

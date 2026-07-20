@@ -114,7 +114,15 @@ export async function fetchServe(req: ServeRequest, fetchImpl: FetchFn = fetch):
 }
 
 export function postTrack(base: string, body: TrackEventBody, fetchImpl: FetchFn = fetch): void {
-  const url = resolveUrl(base, "track");
+  postTrackTo(base, "track", body, fetchImpl);
+}
+
+export function postTrackViewable(base: string, token: string, fetchImpl: FetchFn = fetch): void {
+  postTrackTo(base, "track/viewable", { token, event: "viewable" }, fetchImpl);
+}
+
+function postTrackTo(base: string, path: string, body: TrackEventBody, fetchImpl: FetchFn): void {
+  const url = resolveUrl(base, path);
   const payload = JSON.stringify(body);
   try {
     if (typeof navigator !== "undefined" && typeof navigator.sendBeacon === "function") {

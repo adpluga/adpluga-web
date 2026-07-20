@@ -163,6 +163,7 @@ export class AdPlugaSlotElement extends HTMLElement {
       if (this.impressionFired || !this.response) return;
       this.impressionFired = true;
       client.fireImpression(this.response, slotId);
+      client.fireViewable(this.response, slotId);
     });
   }
 }

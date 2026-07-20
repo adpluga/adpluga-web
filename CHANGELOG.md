@@ -4,6 +4,14 @@ All notable changes to the AdPluga Web SDK are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.3.0] — 2026-07
+
+### Added
+- IAB viewability dispatch: `AdPlugaClient.fireViewable(resp, slotId)` posts
+  `/v1/track/viewable` with the same track token. The bundled Web Component
+  fires it in the same viewability callback that already recorded the
+  impression, so hosts see one viewable event per served creative.
+
 ## [0.2.0] — 2025-11
 
 ### Added

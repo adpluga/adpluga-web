@@ -82,6 +82,49 @@ describe("AdPlugaClient", () => {
     client.destroy();
   });
 
+  it("fireViewable posts /v1/track/viewable with the served track token", async () => {
+    const beaconCalls: Array<{ url: string; body: string }> = [];
+    const nav = globalThis.navigator as Navigator & { sendBeacon: (u: string, d?: unknown) => boolean };
+    const beaconProto = Object.getPrototypeOf(nav) as { sendBeacon?: unknown };
+    const priorProtoBeacon = beaconProto.sendBeacon;
+    Object.defineProperty(beaconProto, "sendBeacon", {
+      configurable: true,
+      writable: true,
+      value: (url: string, data: unknown) => {
+        const body = data instanceof Blob ? "" : String(data ?? "");
+        // Blob body cannot be read sync in happy-dom; test uses fetch fallback path.
+        beaconCalls.push({ url, body });
+        return false;
+      },
+    });
+    try {
+      const client = new AdPlugaClient({
+        publisherKey: "pk_test_abc",
+        endpoint: "https://edge.example/v1/",
+        fetch: fetchMock as unknown as typeof fetch,
+      });
+      const resp = (await client.serve("slot_x")) as ServeResponse;
+      client.fireImpression(resp, "slot_x");
+      client.fireViewable(resp, "slot_x");
+
+      const impression = beaconCalls.find((c) => /\/track(\?|$)/.test(c.url));
+      const viewable = beaconCalls.find((c) => c.url.endsWith("/track/viewable"));
+      expect(impression).toBeDefined();
+      expect(viewable).toBeDefined();
+      client.destroy();
+    } finally {
+      if (priorProtoBeacon === undefined) {
+        delete (beaconProto as { sendBeacon?: unknown }).sendBeacon;
+      } else {
+        Object.defineProperty(beaconProto, "sendBeacon", {
+          configurable: true,
+          writable: true,
+          value: priorProtoBeacon,
+        });
+      }
+    }
+  });
+
   it("treats 426 as upgrade_required and stops serving", async () => {
     const upgradeFetch = vi.fn(async (input: RequestInfo | URL) => {
       const url = typeof input === "string" ? input : input.toString();

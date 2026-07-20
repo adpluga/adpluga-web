@@ -12,7 +12,7 @@ import type {
   ServeResponse,
   SdkClientEvent,
 } from "./types";
-import { fetchServe, postTrack, UpgradeRequiredError } from "./transport";
+import { fetchServe, postTrack, postTrackViewable, UpgradeRequiredError } from "./transport";
 
 type FetchFn = typeof fetch;
 
@@ -125,6 +125,11 @@ export class AdPlugaClient {
     postTrack(this.base, { token: resp.track_token, event: "impression" }, this.fetchImpl);
     this.telemetry.record("impression");
     this.emit({ kind: "impression", slotId, adId: resp.ad.id });
+  }
+
+  fireViewable(resp: ServeResponse, _slotId: string): void {
+    if (this.disposed) return;
+    postTrackViewable(this.base, resp.track_token, this.fetchImpl);
   }
 
   fireClick(resp: ServeResponse, slotId: string): void {
