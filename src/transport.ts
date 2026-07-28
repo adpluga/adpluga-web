@@ -126,7 +126,7 @@ function postTrackTo(base: string, path: string, body: TrackEventBody, fetchImpl
   const payload = JSON.stringify(body);
   try {
     if (typeof navigator !== "undefined" && typeof navigator.sendBeacon === "function") {
-      const ok = navigator.sendBeacon(url, new Blob([payload], { type: "application/json" }));
+      const ok = navigator.sendBeacon(url, new Blob([payload], { type: "text/plain" }));
       if (ok) return;
     }
     void fetchImpl(url, {

@@ -1,6 +1,6 @@
 export type AdSource = "house" | "pool" | "direto" | "external" | "self";
 
-export type CreativeType = "image" | "html" | "native" | "video_vast" | "audio";
+export type CreativeType = "image" | "html" | "native" | "video" | "video_rewarded" | "video_vast" | "audio" | "template";
 
 export type FormatId = "display" | "native" | "video" | "video_rewarded" | "vast";
 
@@ -36,12 +36,16 @@ export interface QuartilePings {
 export interface AdView {
   id: string;
   type: CreativeType;
+  title?: string | null;
+  body?: string | null;
+  sponsored_by?: string | null;
   asset_url?: string | null;
   html?: string | null;
   native?: NativeAssets | null;
   vast_url?: string | null;
   audio_url?: string | null;
   video_url?: string | null;
+  click_url?: string | null;
   width: number;
   height: number;
   duration_ms?: number;

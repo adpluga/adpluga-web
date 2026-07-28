@@ -11,6 +11,15 @@ import { renderCreative, type RenderTeardown } from "./render";
 import type { ClientOptions, ServeResponse } from "./types";
 import { observeViewable, unobserveViewable } from "./viewability";
 
+function resolveRelativeUrl(url: string, base: string): string {
+  if (url.startsWith("http://") || url.startsWith("https://")) return url;
+  try {
+    return new URL(url, base).toString();
+  } catch {
+    return url;
+  }
+}
+
 let singleton: AdPlugaClient | undefined;
 let pending: Array<() => void> = [];
 
@@ -150,9 +159,12 @@ export class AdPlugaSlotElement extends HTMLElement {
     this.loadInFlight = undefined;
     if (!this.connected || !resp) return;
     this.response = resp;
+    const clickUrl = resolveRelativeUrl(resp.click_url, client.endpoint);
     this.teardownRender = renderCreative(resp.ad, {
       container: this,
-      clickUrl: resp.click_url,
+      clickUrl,
+      quartilePings: resp.quartile_pings,
+      apiBase: client.endpoint,
       onClick: () => {
         if (this.clickFired || !this.response) return;
         this.clickFired = true;
