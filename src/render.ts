@@ -206,14 +206,15 @@ function renderVideo(ad: AdView, ctx: RenderContext): RenderTeardown {
     wrapper.appendChild(skipBtn);
 
     const skipMs = ad.skippable_after_ms;
+    const btn = skipBtn;
     const countdown = window.setInterval(() => {
       const elapsed = vid.currentTime * 1000;
       const remaining = Math.ceil((skipMs - elapsed) / 1000);
       if (remaining > 0) {
-        skipBtn!.textContent = `Skip in ${remaining}s`;
+        btn.textContent = `Skip in ${remaining}s`;
       } else {
-        skipBtn!.textContent = "Skip";
-        skipBtn!.disabled = false;
+        btn.textContent = "Skip";
+        btn.disabled = false;
         window.clearInterval(countdown);
       }
     }, 250);
