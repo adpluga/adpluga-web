@@ -4,6 +4,20 @@ All notable changes to the AdPluga Web SDK are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.4.0] — 2026-07
+
+### Added
+- Audio ad rendering with autoplay, companion banner (title + sponsor) and
+  playback controls.
+- Video and audio ads render via `<video>` and `<audio>` elements with
+  autoplay muted (video) / autoplay (audio) following browser policies.
+- `title`, `body`, `sponsored_by`, `click_url` fields on the `AdView`
+  interface for structured ad metadata.
+
+### Fixed
+- Audio banner now shows actual ad title instead of fallback "Audio Ad"
+  by checking `ad.title` before `ad.native?.title`.
+
 ## [0.3.0] — 2026-07
 
 ### Added
