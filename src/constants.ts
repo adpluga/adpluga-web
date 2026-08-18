@@ -1,4 +1,4 @@
-export const SDK_VERSION = "0.4.0";
+export const SDK_VERSION = "0.4.1";
 export const SDK_PLATFORM = "web";
 
 export const DEFAULT_ENDPOINT = "https://edge.adpluga.com/v1/";

@@ -4,6 +4,17 @@ All notable changes to the AdPluga Web SDK are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.4.1] — 2026-08
+
+### Fixed
+- Native ads now render from the flat serve fields (`title`, `body`,
+  `cta_text`, `sponsored_by`, `icon_url`, `main_image_url`) instead of a
+  nested `native` object, fixing native creatives that previously showed
+  only the "Ad" fallback.
+- Native renderer now includes `main_image_url` and a `cta_text` button and
+  uses `adpluga-native*` class hooks instead of style-locking inline styles,
+  so publisher CSS applies.
+
 ## [0.4.0] — 2026-07
 
 ### Added
