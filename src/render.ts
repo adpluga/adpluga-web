@@ -100,42 +100,72 @@ function renderHtml(ad: AdView, ctx: RenderContext): RenderTeardown {
 }
 
 function renderNative(ad: AdView, ctx: RenderContext): RenderTeardown {
-  const article = document.createElement("article");
-  article.setAttribute("role", "link");
-  article.style.display = "grid";
-  article.style.gridTemplateColumns = "auto 1fr";
-  article.style.gap = "12px";
-  article.style.alignItems = "center";
-  article.style.cursor = "pointer";
-  article.style.font = "inherit";
+  // Native assets are flat top-level fields on the serve contract; `native`
+  // is only a defensive fallback for legacy responses. Presentation is left
+  // to integrator CSS via BEM-style class hooks — the SDK sets structure and
+  // only the functional `cursor` inline style, so publisher classes win.
+  const n = ad.native ?? {};
+  const titleText = ad.title ?? n.title ?? "";
+  const bodyText = ad.body ?? n.body ?? "";
+  const ctaText = ad.cta_text ?? n.cta_text ?? "";
+  const sponsoredBy = ad.sponsored_by ?? n.sponsored_by ?? "";
+  const iconUrl = ad.icon_url ?? n.icon_url ?? "";
+  const mainImageUrl = ad.main_image_url ?? n.main_image_url ?? "";
 
-  const native = ad.native ?? {};
-  if (native.icon_url) {
+  const article = document.createElement("article");
+  article.className = "adpluga-native";
+  article.setAttribute("role", "link");
+  article.style.cursor = "pointer";
+
+  if (mainImageUrl) {
+    const cover = document.createElement("img");
+    cover.className = "adpluga-native__image";
+    cover.src = mainImageUrl;
+    cover.alt = "";
+    cover.decoding = "async";
+    cover.loading = "lazy";
+    article.appendChild(cover);
+  }
+
+  const bodyWrap = document.createElement("div");
+  bodyWrap.className = "adpluga-native__body";
+
+  if (iconUrl) {
     const icon = document.createElement("img");
-    icon.src = native.icon_url;
+    icon.className = "adpluga-native__icon";
+    icon.src = iconUrl;
     icon.alt = "";
     icon.width = 48;
     icon.height = 48;
     icon.decoding = "async";
     icon.loading = "lazy";
-    icon.style.borderRadius = "8px";
-    article.appendChild(icon);
+    bodyWrap.appendChild(icon);
   }
 
-  const body = document.createElement("div");
+  const text = document.createElement("div");
+  text.className = "adpluga-native__text";
   const title = document.createElement("div");
-  title.textContent = native.title ?? "";
-  title.style.fontWeight = "600";
+  title.className = "adpluga-native__title";
+  title.textContent = titleText;
   const desc = document.createElement("div");
-  desc.textContent = native.body ?? "";
-  desc.style.opacity = "0.8";
+  desc.className = "adpluga-native__desc";
+  desc.textContent = bodyText;
   const sponsor = document.createElement("small");
-  sponsor.textContent = native.sponsored_by ? `Ad · ${native.sponsored_by}` : "Ad";
-  sponsor.style.opacity = "0.6";
-  body.appendChild(title);
-  body.appendChild(desc);
-  body.appendChild(sponsor);
-  article.appendChild(body);
+  sponsor.className = "adpluga-native__sponsor";
+  sponsor.textContent = sponsoredBy ? `Ad · ${sponsoredBy}` : "Ad";
+  text.appendChild(title);
+  text.appendChild(desc);
+  text.appendChild(sponsor);
+  bodyWrap.appendChild(text);
+  article.appendChild(bodyWrap);
+
+  if (ctaText) {
+    const cta = document.createElement("button");
+    cta.type = "button";
+    cta.className = "adpluga-native__cta";
+    cta.textContent = ctaText;
+    article.appendChild(cta);
+  }
 
   const onClick = (): void => {
     ctx.onClick();

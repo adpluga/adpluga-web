@@ -38,9 +38,15 @@ export interface AdView {
   type: CreativeType;
   title?: string | null;
   body?: string | null;
+  cta_text?: string | null;
   sponsored_by?: string | null;
+  icon_url?: string | null;
+  main_image_url?: string | null;
   asset_url?: string | null;
   html?: string | null;
+  // Deprecated: the serve contract emits native assets as flat top-level
+  // fields (title/body/cta_text/sponsored_by/icon_url/main_image_url).
+  // Kept only as a defensive fallback for older responses.
   native?: NativeAssets | null;
   vast_url?: string | null;
   audio_url?: string | null;
