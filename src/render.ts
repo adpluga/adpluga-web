@@ -60,11 +60,12 @@ function renderImage(ad: AdView, ctx: RenderContext): RenderTeardown {
 
   const onClick = (): void => ctx.onClick();
   link.addEventListener("click", onClick, { passive: true });
-  ctx.container.replaceChildren(link);
+  const root = mountRoot(link, ad.test);
+  ctx.container.replaceChildren(root);
 
   return () => {
     link.removeEventListener("click", onClick);
-    link.remove();
+    root.remove();
   };
 }
 
@@ -91,11 +92,12 @@ function renderHtml(ad: AdView, ctx: RenderContext): RenderTeardown {
   };
   window.addEventListener("message", onMessage);
 
-  ctx.container.replaceChildren(iframe);
+  const root = mountRoot(iframe, ad.test);
+  ctx.container.replaceChildren(root);
 
   return () => {
     window.removeEventListener("message", onMessage);
-    iframe.remove();
+    root.remove();
   };
 }
 
@@ -172,6 +174,10 @@ function renderNative(ad: AdView, ctx: RenderContext): RenderTeardown {
     window.open(ctx.clickUrl, "_blank", "noopener,noreferrer");
   };
   article.addEventListener("click", onClick, { passive: true });
+  if (ad.test) {
+    article.style.position = "relative";
+    article.appendChild(testBadge());
+  }
   ctx.container.replaceChildren(article);
 
   return () => {
@@ -269,6 +275,7 @@ function renderVideo(ad: AdView, ctx: RenderContext): RenderTeardown {
   ctaOverlay.addEventListener("click", onCtaClick, { passive: true });
   wrapper.appendChild(ctaOverlay);
 
+  if (ad.test) wrapper.appendChild(testBadge());
   vid.play().catch(() => {});
   ctx.container.replaceChildren(wrapper);
 
@@ -387,6 +394,7 @@ function renderAudio(ad: AdView, ctx: RenderContext): RenderTeardown {
   audio.addEventListener("timeupdate", onTimeUpdate);
   audio.addEventListener("ended", onEnded);
 
+  if (ad.test) wrapper.appendChild(testBadge());
   audio.play().catch(() => {});
   ctx.container.replaceChildren(wrapper);
 
@@ -405,6 +413,33 @@ function renderUnsupported(ctx: RenderContext): RenderTeardown {
   return () => {
     /* nothing to teardown */
   };
+}
+
+// testBadge builds the non-interactive "TEST" chip drawn over sandbox
+// (pk_test_) creatives. It rides `ad.test`, which the server sets from the
+// authenticated key mode, so it cannot be spoofed away by advertiser HTML.
+function testBadge(): HTMLElement {
+  const b = document.createElement("div");
+  b.textContent = "TEST";
+  b.setAttribute("aria-hidden", "true");
+  b.style.cssText =
+    "position:absolute;top:6px;left:6px;z-index:2147483647;pointer-events:none;" +
+    "background:#b45309;color:#fff;font:700 10px/1 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;" +
+    "letter-spacing:.08em;padding:3px 6px;border-radius:4px;opacity:.92;";
+  return b;
+}
+
+// mountRoot overlays the TEST badge on a render whose outer element is not
+// already positioned (image, html). Live renders return the element as-is.
+function mountRoot(el: HTMLElement, test: boolean | null | undefined): HTMLElement {
+  if (!test) return el;
+  const wrap = document.createElement("div");
+  wrap.style.position = "relative";
+  wrap.style.display = "inline-block";
+  wrap.style.maxWidth = "100%";
+  wrap.appendChild(el);
+  wrap.appendChild(testBadge());
+  return wrap;
 }
 
 function wrapClickTracking(html: string, clickUrl: string): string {

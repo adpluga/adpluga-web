@@ -58,6 +58,7 @@ export interface AdView {
   skippable_after_ms?: number;
   reward_amount?: number;
   reward_currency?: string;
+  test?: boolean;
   format: FormatId;
 }
 

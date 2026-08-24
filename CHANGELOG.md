@@ -4,6 +4,14 @@ All notable changes to the AdPluga Web SDK are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.4.2] — 2026-08
+
+### Added
+- Test-mode badge: creatives served by a `pk_test_` key now render a
+  non-interactive `TEST` chip (driven by the authoritative `ad.test` field
+  from the serve response, not a client attribute) across image, html,
+  native, video and audio surfaces.
+
 ## [0.4.1] — 2026-08
 
 ### Fixed

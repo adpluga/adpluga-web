@@ -73,6 +73,39 @@ describe("renderNative", () => {
   });
 });
 
+describe("test-mode badge", () => {
+  function hasTestBadge(container: HTMLElement): boolean {
+    return Array.from(container.querySelectorAll("div")).some((d) => d.textContent === "TEST");
+  }
+
+  it("draws a TEST badge on native when ad.test is true", () => {
+    const { ctx, container } = ctxWith();
+    renderCreative({ ...baseNative, test: true }, ctx);
+    expect(hasTestBadge(container)).toBe(true);
+  });
+
+  it("draws a TEST badge on image when ad.test is true", () => {
+    const { ctx, container } = ctxWith();
+    const ad: AdView = {
+      id: "img-1",
+      type: "image",
+      asset_url: "https://cdn.example/banner.png",
+      width: 300,
+      height: 250,
+      format: "display",
+      test: true,
+    };
+    renderCreative(ad, ctx);
+    expect(hasTestBadge(container)).toBe(true);
+  });
+
+  it("omits the badge on live creatives", () => {
+    const { ctx, container } = ctxWith();
+    renderCreative(baseNative, ctx);
+    expect(hasTestBadge(container)).toBe(false);
+  });
+});
+
 describe("renderCreative template", () => {
   it("renders server-composed html for type html (templates arrive as html)", () => {
     const { ctx, container } = ctxWith();
