@@ -12,7 +12,7 @@ import type {
   ServeResponse,
   SdkClientEvent,
 } from "./types";
-import { fetchServe, postTrack, postTrackViewable, UpgradeRequiredError } from "./transport";
+import { fetchServe, fireBeacon, postTrack, postTrackViewable, UpgradeRequiredError } from "./transport";
 
 type FetchFn = typeof fetch;
 
@@ -129,7 +129,15 @@ export class AdPlugaClient {
 
   fireViewable(resp: ServeResponse, _slotId: string): void {
     if (this.disposed) return;
-    postTrackViewable(this.base, resp.track_token, this.fetchImpl);
+    // Mediation fills carry no AdPluga track token: the billable impression is
+    // reported to the bidder by firing its burl once. First-party fills report
+    // the viewable to /track/viewable instead.
+    if (resp.ad.billing_url) {
+      fireBeacon(resp.ad.billing_url, this.fetchImpl);
+    }
+    if (resp.track_token) {
+      postTrackViewable(this.base, resp.track_token, this.fetchImpl);
+    }
   }
 
   fireClick(resp: ServeResponse, slotId: string): void {

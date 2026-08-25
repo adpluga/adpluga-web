@@ -44,6 +44,7 @@ export interface AdView {
   main_image_url?: string | null;
   asset_url?: string | null;
   html?: string | null;
+  billing_url?: string | null;
   // Deprecated: the serve contract emits native assets as flat top-level
   // fields (title/body/cta_text/sponsored_by/icon_url/main_image_url).
   // Kept only as a defensive fallback for older responses.

@@ -155,4 +155,46 @@ describe("AdPlugaClient", () => {
     expect(serveHits).toHaveLength(1);
     client.destroy();
   });
+
+  it("fires the bidder burl for a mediation fill and never posts a tokenless viewable", () => {
+    const client = new AdPlugaClient({
+      publisherKey: "pk_test_abc",
+      endpoint: "https://edge.example/v1/",
+      fetch: fetchMock as unknown as typeof fetch,
+    });
+    const mediation = {
+      ...fixtureDisplay,
+      ad: { ...fixtureDisplay.ad, billing_url: "https://ssp.example/bill?p=1" },
+      track_token: "",
+      source: "external",
+    } as unknown as ServeResponse;
+
+    client.fireViewable(mediation, "slot_x");
+
+    expect(calls.some((c) => c.url === "https://ssp.example/bill?p=1")).toBe(true);
+    expect(calls.some((c) => c.url.includes("/track/viewable"))).toBe(false);
+    client.destroy();
+  });
+
+  it("posts the viewable and no bidder beacon for a first-party fill", () => {
+    const sendBeacon = vi.fn(() => true);
+    vi.stubGlobal("navigator", { ...globalThis.navigator, sendBeacon });
+    const client = new AdPlugaClient({
+      publisherKey: "pk_test_abc",
+      endpoint: "https://edge.example/v1/",
+      fetch: fetchMock as unknown as typeof fetch,
+    });
+    const firstParty = { ...fixtureDisplay, track_token: "tok-1" } as unknown as ServeResponse;
+
+    client.fireViewable(firstParty, "slot_x");
+
+    expect(sendBeacon).toHaveBeenCalledWith(
+      expect.stringContaining("/track/viewable"),
+      expect.anything(),
+    );
+    // No third-party bidder beacon for first-party fills.
+    expect(calls.every((c) => !c.url.startsWith("https://ssp"))).toBe(true);
+    vi.unstubAllGlobals();
+    client.destroy();
+  });
 });

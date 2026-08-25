@@ -121,6 +121,20 @@ export function postTrackViewable(base: string, token: string, fetchImpl: FetchF
   postTrackTo(base, "track/viewable", { token, event: "viewable" }, fetchImpl);
 }
 
+// fireBeacon sends a fire-and-forget GET to a third-party notice URL (OpenRTB
+// nurl/burl). `no-cors` because the bidder host will not send CORS headers and
+// the response is never read; `keepalive` lets it survive page unload.
+export function fireBeacon(url: string, fetchImpl: FetchFn = fetch): void {
+  if (!url) return;
+  try {
+    void fetchImpl(url, { method: "GET", mode: "no-cors", keepalive: true, cache: "no-store" }).catch(
+      (err: unknown) => log.debug("beacon fire failed", err),
+    );
+  } catch (err) {
+    log.debug("beacon fire threw", err);
+  }
+}
+
 function postTrackTo(base: string, path: string, body: TrackEventBody, fetchImpl: FetchFn): void {
   const url = resolveUrl(base, path);
   const payload = JSON.stringify(body);
