@@ -4,6 +4,20 @@ All notable changes to the AdPluga Web SDK are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.6.0] — 2026-09
+
+### Added
+- `renderCarousel` renders `type=carousel` decks as a CSS scroll-snap track, so
+  it inherits native momentum scrolling and stays keyboard accessible. Every
+  card links to the shared click URL: one advertiser, one auction, one
+  impression.
+- `Slide` type and `AdView.slides`.
+
+### Changed
+- A slot cadence below the client floor is raised to it instead of being
+  ignored, so a slot set to 15s rotates every 15s on a `pk_test_` key and every
+  30s on a live one.
+
 ## [0.5.0] — 2026-09
 
 ### Added
