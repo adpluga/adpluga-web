@@ -197,4 +197,30 @@ describe("AdPlugaClient", () => {
     vi.unstubAllGlobals();
     client.destroy();
   });
+
+  it("sends the rotation index and surfaces the slot cadence", async () => {
+    const withCadence = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = typeof input === "string" ? input : input.toString();
+      calls.push({ url, init: init ?? undefined });
+      if (url.includes("/serve")) {
+        return fetchOk({ ...fixtureDisplay, refresh_after_seconds: 60 });
+      }
+      return new Response("", { status: 204 });
+    });
+    const client = new AdPlugaClient({
+      publisherKey: "pk_test_abc",
+      endpoint: "https://edge.example/v1/",
+      fetch: withCadence as unknown as typeof fetch,
+    });
+
+    const first = (await client.serve("slot_x")) as ServeResponse;
+    expect(first.refresh_after_seconds).toBe(60);
+    await client.serve("slot_x", { refreshSeq: 2 });
+
+    const serveCalls = calls.filter((c) => c.url.includes("/serve"));
+    expect(serveCalls[0]?.url).not.toContain("rq=");
+    expect(serveCalls[1]?.url).toContain("rq=2");
+    client.destroy();
+  });
+
 });

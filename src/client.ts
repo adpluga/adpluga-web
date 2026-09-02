@@ -97,6 +97,7 @@ export class AdPlugaClient {
       };
       if (this.userId) req.userId = this.userId;
       if (opts.format !== undefined) req.format = opts.format;
+      if (opts.refreshSeq) req.refreshSeq = opts.refreshSeq;
       if (!this.consent.isPersonalized()) req.nonPersonalized = true;
       if (opts.signal) req.signal = opts.signal;
       const resp = await fetchServe(req, this.fetchImpl);

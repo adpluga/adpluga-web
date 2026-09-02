@@ -72,6 +72,8 @@ export interface ServeResponse {
   conversion_token: string;
   source: AdSource;
   quartile_pings?: QuartilePings | null;
+  /** Publisher-configured rotation cadence, in seconds. 0/absent = no rotation. */
+  refresh_after_seconds?: number;
 }
 
 export interface TrackEventBody {
@@ -145,5 +147,7 @@ export type SdkClientEvent =
 
 export interface ServeOptions {
   format?: string;
+  /** Rotation index: 0 is the initial render, N the Nth auto-refresh. */
+  refreshSeq?: number;
   signal?: AbortSignal;
 }

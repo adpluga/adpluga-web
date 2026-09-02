@@ -1,9 +1,14 @@
-export const SDK_VERSION = "0.4.2";
+export const SDK_VERSION = "0.5.0";
 export const SDK_PLATFORM = "web";
 
 export const DEFAULT_ENDPOINT = "https://edge.adpluga.com/v1/";
 
 // Mirrors adpluga-sdk/shared/constants.json — kept in sync via CI check.
+// Rotation cadences below this floor are ignored even when the server sends
+// one: it matches the 30s minimum the ad industry enforces and keeps a
+// misconfigured slot from burning the publisher's decision quota.
+export const MIN_REFRESH_SECONDS = 30;
+
 export const VIEWABILITY_THRESHOLD = 0.5;
 export const VIEWABILITY_DURATION_MS = 1000;
 

@@ -4,6 +4,18 @@ All notable changes to the AdPluga Web SDK are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.5.0] — 2026-09
+
+### Added
+- Slot rotation: `<adpluga-slot>` now re-serves on the cadence the publisher
+  configures for the slot (`refresh_after_seconds` on the serve response),
+  so a single-page app no longer shows a frozen creative between navigations.
+- Rotation never fires on a hidden tab (`document.hidden`) — the MRC guidelines
+  treat out-of-view auto-refresh as non-viewable — is floored at 30s
+  (`MIN_REFRESH_SECONDS`), and the timer is cleared on disconnect and reload.
+- `serve()` accepts `refreshSeq` and sends it as `rq`, so refreshed impressions
+  stay segregable from the initial render.
+
 ## [0.4.2] — 2026-08
 
 ### Added

@@ -27,6 +27,7 @@ export interface ServeRequest {
   slotId: string;
   userId?: string;
   format?: string;
+  refreshSeq?: number;
   nonPersonalized?: boolean;
   signal?: AbortSignal;
 }
@@ -65,6 +66,7 @@ export async function fetchServe(req: ServeRequest, fetchImpl: FetchFn = fetch):
   url.searchParams.set("slot", req.slotId);
   if (req.userId) url.searchParams.set("u", req.userId);
   if (req.format) url.searchParams.set("fmt", req.format);
+  if (req.refreshSeq) url.searchParams.set("rq", String(req.refreshSeq));
   if (req.nonPersonalized) url.searchParams.set("non_personalized", "true");
 
   let attempt = 0;

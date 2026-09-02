@@ -6,6 +6,7 @@ import {
   ATTR_PUBLISHABLE_KEY,
   ATTR_SLOT,
   ELEMENT_TAG,
+  MIN_REFRESH_SECONDS,
 } from "./constants";
 import { renderCreative, type RenderTeardown } from "./render";
 import type { ClientOptions, ServeResponse } from "./types";
@@ -58,6 +59,8 @@ export class AdPlugaSlotElement extends HTMLElement {
   private loadInFlight: AbortController | undefined;
   private connected = false;
   private readyUnsub: (() => void) | undefined;
+  private refreshTimer: ReturnType<typeof setTimeout> | undefined;
+  private refreshSeq = 0;
 
   connectedCallback(): void {
     if (this.connected) return;
@@ -87,6 +90,7 @@ export class AdPlugaSlotElement extends HTMLElement {
 
   disconnectedCallback(): void {
     this.connected = false;
+    this.cancelRefresh();
     this.readyUnsub?.();
     this.readyUnsub = undefined;
     this.loadInFlight?.abort();
@@ -136,12 +140,47 @@ export class AdPlugaSlotElement extends HTMLElement {
   }
 
   private async reload(): Promise<void> {
+    this.cancelRefresh();
     this.teardownRender?.();
     this.teardownRender = undefined;
     unobserveViewable(this);
     this.impressionFired = false;
     this.clickFired = false;
+    this.refreshSeq = 0;
     await this.load();
+  }
+
+  // The cadence is published per slot on the serve response. Rotating a hidden
+  // tab would spend a decision on an impression the MRC guidelines treat as
+  // non-viewable, so wait for the tab to come back and re-arm instead.
+  private scheduleRefresh(resp: ServeResponse): void {
+    this.cancelRefresh();
+    const secs = resp.refresh_after_seconds ?? 0;
+    if (secs < MIN_REFRESH_SECONDS) return;
+    this.refreshTimer = setTimeout(() => this.rotate(), secs * 1000);
+  }
+
+  private cancelRefresh(): void {
+    if (this.refreshTimer !== undefined) {
+      clearTimeout(this.refreshTimer);
+      this.refreshTimer = undefined;
+    }
+  }
+
+  private rotate(): void {
+    this.refreshTimer = undefined;
+    if (!this.connected || !this.response) return;
+    if (typeof document !== "undefined" && document.hidden) {
+      this.scheduleRefresh(this.response);
+      return;
+    }
+    this.refreshSeq += 1;
+    this.teardownRender?.();
+    this.teardownRender = undefined;
+    unobserveViewable(this);
+    this.impressionFired = false;
+    this.clickFired = false;
+    void this.load();
   }
 
   private async load(): Promise<void> {
@@ -155,6 +194,7 @@ export class AdPlugaSlotElement extends HTMLElement {
     };
     const fmt = this.getAttribute(ATTR_FORMAT);
     if (fmt) opts.format = fmt;
+    if (this.refreshSeq > 0) opts.refreshSeq = this.refreshSeq;
     const resp = await client.serve(slotId, opts);
     this.loadInFlight = undefined;
     if (!this.connected || !resp) return;
@@ -177,6 +217,7 @@ export class AdPlugaSlotElement extends HTMLElement {
       client.fireImpression(this.response, slotId);
       client.fireViewable(this.response, slotId);
     });
+    this.scheduleRefresh(resp);
   }
 }
 
