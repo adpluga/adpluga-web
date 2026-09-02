@@ -1,4 +1,4 @@
-import type { AdView, QuartilePings } from "./types";
+import type { AdView, QuartilePings, Slide } from "./types";
 
 export type RenderTeardown = () => void;
 
@@ -29,6 +29,8 @@ export function renderCreative(ad: AdView, ctx: RenderContext): RenderTeardown {
       return renderHtml(ad, ctx);
     case "native":
       return renderNative(ad, ctx);
+    case "carousel":
+      return renderCarousel(ad, ctx);
     case "video":
     case "video_rewarded":
     case "video_vast":
@@ -65,6 +67,95 @@ function renderImage(ad: AdView, ctx: RenderContext): RenderTeardown {
 
   return () => {
     link.removeEventListener("click", onClick);
+    root.remove();
+  };
+}
+
+// renderCarousel lays the deck out as a native scroll-snap track: no timers,
+// no JS animation, so it inherits the platform's own momentum scrolling and
+// stays accessible to keyboard and screen readers. Every card links to the
+// same click URL because the deck is one advertiser and one auction — the
+// SDK must never mint a second token per card.
+function renderCarousel(ad: AdView, ctx: RenderContext): RenderTeardown {
+  const deck: Slide[] = (ad.slides ?? []).filter((s) => !!s && !!s.asset_url);
+  if (deck.length === 0) return renderUnsupported(ctx);
+
+  const track = document.createElement("div");
+  track.className = "adpluga-carousel";
+  track.setAttribute("role", "group");
+  track.setAttribute("aria-roledescription", "carousel");
+  track.style.display = "flex";
+  track.style.overflowX = "auto";
+  track.style.scrollSnapType = "x mandatory";
+  track.style.scrollBehavior = "smooth";
+  track.style.setProperty("-webkit-overflow-scrolling", "touch");
+  if (ad.width) track.style.maxWidth = `${ad.width}px`;
+
+  const cards: HTMLAnchorElement[] = [];
+  const onClick = (): void => ctx.onClick();
+
+  for (let i = 0; i < deck.length; i += 1) {
+    const slide = deck[i] as Slide;
+    const card = document.createElement("a");
+    card.className = "adpluga-carousel__slide";
+    card.href = ctx.clickUrl;
+    card.target = "_blank";
+    card.rel = "noopener noreferrer sponsored";
+    card.setAttribute("aria-label", `${i + 1} de ${deck.length}`);
+    card.style.flex = "0 0 100%";
+    card.style.scrollSnapAlign = "start";
+    card.style.display = "block";
+    card.style.textDecoration = "none";
+    card.addEventListener("click", onClick, { passive: true });
+
+    const img = document.createElement("img");
+    img.className = "adpluga-carousel__image";
+    img.src = slide.asset_url;
+    img.alt = slide.title ?? "";
+    img.decoding = "async";
+    img.loading = i === 0 ? "eager" : "lazy";
+    if (ad.width) img.width = ad.width;
+    if (ad.height) img.height = ad.height;
+    img.style.display = "block";
+    img.style.width = "100%";
+    img.style.height = "auto";
+    card.appendChild(img);
+
+    if (slide.title || slide.body || slide.cta_text) {
+      const caption = document.createElement("div");
+      caption.className = "adpluga-carousel__caption";
+      if (slide.title) {
+        const t = document.createElement("div");
+        t.className = "adpluga-carousel__title";
+        t.textContent = slide.title;
+        caption.appendChild(t);
+      }
+      if (slide.body) {
+        const b = document.createElement("div");
+        b.className = "adpluga-carousel__desc";
+        b.textContent = slide.body;
+        caption.appendChild(b);
+      }
+      if (slide.cta_text) {
+        const c = document.createElement("span");
+        c.className = "adpluga-carousel__cta";
+        c.textContent = slide.cta_text;
+        caption.appendChild(c);
+      }
+      card.appendChild(caption);
+    }
+
+    cards.push(card);
+    track.appendChild(card);
+  }
+
+  const root = mountRoot(track, ad.test);
+  ctx.container.replaceChildren(root);
+
+  return () => {
+    for (let i = 0; i < cards.length; i += 1) {
+      (cards[i] as HTMLAnchorElement).removeEventListener("click", onClick);
+    }
     root.remove();
   };
 }

@@ -122,3 +122,67 @@ describe("renderCreative template", () => {
     expect(container.childElementCount).toBeGreaterThan(0);
   });
 });
+
+const baseCarousel: AdView = {
+  id: "ad-2",
+  type: "carousel",
+  width: 300,
+  height: 250,
+  format: "display",
+  slides: [
+    { asset_url: "https://cdn.example/1.png", title: "Card 1", cta_text: "Ver" },
+    { asset_url: "https://cdn.example/2.png", body: "Segundo cartão" },
+    { asset_url: "https://cdn.example/3.png" },
+  ],
+};
+
+describe("renderCarousel", () => {
+  it("renders one card per slide, all pointing at the shared click url", () => {
+    const { ctx, container } = ctxWith();
+    renderCreative(baseCarousel, ctx);
+    const cards = container.querySelectorAll<HTMLAnchorElement>(".adpluga-carousel__slide");
+    expect(cards.length).toBe(3);
+    for (const card of cards) {
+      // one advertiser, one auction: a second click url would mean a second token
+      expect(card.href).toBe("https://track.example/click");
+    }
+    expect(container.querySelector(".adpluga-carousel__title")?.textContent).toBe("Card 1");
+    expect(container.querySelector(".adpluga-carousel__cta")?.textContent).toBe("Ver");
+  });
+
+  it("fires exactly one click callback per tap", () => {
+    const container = document.createElement("div");
+    let clicks = 0;
+    renderCreative(baseCarousel, {
+      container,
+      clickUrl: "https://track.example/click",
+      onClick: () => {
+        clicks += 1;
+      },
+    });
+    const cards = container.querySelectorAll<HTMLAnchorElement>(".adpluga-carousel__slide");
+    cards[1]?.dispatchEvent(new MouseEvent("click"));
+    expect(clicks).toBe(1);
+  });
+
+  it("drops slides without a creative and falls back when the deck is empty", () => {
+    const { ctx, container } = ctxWith();
+    renderCreative(
+      { ...baseCarousel, slides: [{ asset_url: "" }, { asset_url: "https://cdn.example/1.png" }] },
+      ctx,
+    );
+    expect(container.querySelectorAll(".adpluga-carousel__slide").length).toBe(1);
+
+    const empty = ctxWith();
+    renderCreative({ ...baseCarousel, slides: [] }, empty.ctx);
+    expect(empty.container.querySelector(".adpluga-carousel")).toBeNull();
+  });
+
+  it("teardown removes the deck from the container", () => {
+    const { ctx, container } = ctxWith();
+    const teardown = renderCreative(baseCarousel, ctx);
+    expect(container.querySelector(".adpluga-carousel")).not.toBeNull();
+    teardown();
+    expect(container.querySelector(".adpluga-carousel")).toBeNull();
+  });
+});

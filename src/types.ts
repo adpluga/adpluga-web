@@ -1,6 +1,6 @@
 export type AdSource = "house" | "pool" | "direto" | "external" | "self";
 
-export type CreativeType = "image" | "html" | "native" | "video" | "video_rewarded" | "video_vast" | "audio" | "template";
+export type CreativeType = "image" | "html" | "native" | "video" | "video_rewarded" | "video_vast" | "audio" | "template" | "carousel";
 
 export type FormatId = "display" | "native" | "video" | "video_rewarded" | "vast";
 
@@ -23,6 +23,17 @@ export interface NativeAssets {
   sponsored_by?: string;
   icon_url?: string;
   main_image_url?: string;
+}
+
+/**
+ * One card of a carousel. The whole deck shares the ad's click token and its
+ * single impression, so swiping never mints or spends anything extra.
+ */
+export interface Slide {
+  asset_url: string;
+  title?: string;
+  body?: string;
+  cta_text?: string;
 }
 
 export interface QuartilePings {
@@ -59,6 +70,7 @@ export interface AdView {
   skippable_after_ms?: number;
   reward_amount?: number;
   reward_currency?: string;
+  slides?: Slide[] | null;
   test?: boolean;
   format: FormatId;
 }
