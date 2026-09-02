@@ -4,10 +4,11 @@ export const SDK_PLATFORM = "web";
 export const DEFAULT_ENDPOINT = "https://edge.adpluga.com/v1/";
 
 // Mirrors adpluga-sdk/shared/constants.json — kept in sync via CI check.
-// Rotation cadences below this floor are ignored even when the server sends
-// one: it matches the 30s minimum the ad industry enforces and keeps a
-// misconfigured slot from burning the publisher's decision quota.
+// A cadence below the floor is raised to it, never dropped, so a slot always
+// keeps rotating. Live traffic honours the 30s industry minimum; sandbox keys
+// may rotate every 15s so an integrator can watch it work without waiting.
 export const MIN_REFRESH_SECONDS = 30;
+export const MIN_REFRESH_SECONDS_TEST = 15;
 
 export const VIEWABILITY_THRESHOLD = 0.5;
 export const VIEWABILITY_DURATION_MS = 1000;

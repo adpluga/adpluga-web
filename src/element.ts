@@ -7,6 +7,7 @@ import {
   ATTR_SLOT,
   ELEMENT_TAG,
   MIN_REFRESH_SECONDS,
+  MIN_REFRESH_SECONDS_TEST,
 } from "./constants";
 import { renderCreative, type RenderTeardown } from "./render";
 import type { ClientOptions, ServeResponse } from "./types";
@@ -156,8 +157,9 @@ export class AdPlugaSlotElement extends HTMLElement {
   private scheduleRefresh(resp: ServeResponse): void {
     this.cancelRefresh();
     const secs = resp.refresh_after_seconds ?? 0;
-    if (secs < MIN_REFRESH_SECONDS) return;
-    this.refreshTimer = setTimeout(() => this.rotate(), secs * 1000);
+    if (secs <= 0) return;
+    const floor = resp.ad.test === true ? MIN_REFRESH_SECONDS_TEST : MIN_REFRESH_SECONDS;
+    this.refreshTimer = setTimeout(() => this.rotate(), Math.max(secs, floor) * 1000);
   }
 
   private cancelRefresh(): void {
