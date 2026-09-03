@@ -4,6 +4,13 @@ All notable changes to the AdPluga Web SDK are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.7.0] — 2026-09
+
+### Changed
+- Version bump only, to keep the four SDKs aligned. The web SDK was not
+  affected by the native tracking and click-through defects fixed in 0.7.0:
+  it already wraps image creatives in an anchor to the click URL.
+
 ## [0.6.0] — 2026-09
 
 ### Added
