@@ -54,6 +54,12 @@ export class AdPlugaClient {
     return this.opts.publisherKey;
   }
 
+  /** True while running against a sandbox key. Used for the cadence floor
+   * before any response has arrived. */
+  get isTestKey(): boolean {
+    return this.opts.publisherKey.startsWith("pk_test_");
+  }
+
   get endpoint(): string {
     return this.base;
   }

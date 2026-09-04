@@ -6,9 +6,11 @@ import {
   ATTR_PUBLISHABLE_KEY,
   ATTR_SLOT,
   ELEMENT_TAG,
+  FILL_RETRY_MAX_BACKOFF_SECONDS,
   MIN_REFRESH_SECONDS,
   MIN_REFRESH_SECONDS_TEST,
 } from "./constants";
+import { log } from "./logger";
 import { renderCreative, type RenderTeardown } from "./render";
 import type { ClientOptions, ServeResponse } from "./types";
 import { observeViewable, unobserveViewable } from "./viewability";
@@ -61,6 +63,7 @@ export class AdPlugaSlotElement extends HTMLElement {
   private connected = false;
   private readyUnsub: (() => void) | undefined;
   private refreshTimer: ReturnType<typeof setTimeout> | undefined;
+  private fillFailures = 0;
   private refreshSeq = 0;
 
   connectedCallback(): void {
@@ -185,6 +188,24 @@ export class AdPlugaSlotElement extends HTMLElement {
     void this.load();
   }
 
+  // Arms another attempt after a failed fill, backing off exponentially from
+  // the client's cadence floor. Independent of the slot's rotation cadence:
+  // rotation is off by default, so a slot that relied on it would stay blank
+  // for the rest of the session after a single miss.
+  private scheduleRetry(): void {
+    this.cancelRefresh();
+    if (!this.connected) return;
+    const base = singleton?.isTestKey ? MIN_REFRESH_SECONDS_TEST : MIN_REFRESH_SECONDS;
+    const capped = Math.min(this.fillFailures, 10);
+    const secs = Math.min(base * 2 ** capped, FILL_RETRY_MAX_BACKOFF_SECONDS);
+    this.fillFailures += 1;
+    log.warn(`slot unfilled; retrying in ${secs}s`);
+    this.refreshTimer = setTimeout(() => {
+      this.refreshTimer = undefined;
+      void this.load();
+    }, secs * 1000);
+  }
+
   private async load(): Promise<void> {
     const client = singleton;
     const slotId = this.getAttribute(ATTR_SLOT);
@@ -199,7 +220,12 @@ export class AdPlugaSlotElement extends HTMLElement {
     if (this.refreshSeq > 0) opts.refreshSeq = this.refreshSeq;
     const resp = await client.serve(slotId, opts);
     this.loadInFlight = undefined;
-    if (!this.connected || !resp) return;
+    if (!this.connected) return;
+    if (!resp) {
+      this.scheduleRetry();
+      return;
+    }
+    this.fillFailures = 0;
     this.response = resp;
     const clickUrl = resolveRelativeUrl(resp.click_url, client.endpoint);
     this.teardownRender = renderCreative(resp.ad, {

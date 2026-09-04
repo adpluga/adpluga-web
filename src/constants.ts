@@ -7,6 +7,12 @@ export const DEFAULT_ENDPOINT = "https://edge.adpluga.com/v1/";
 // A cadence below the floor is raised to it, never dropped, so a slot always
 // keeps rotating. Live traffic honours the 30s industry minimum; sandbox keys
 // may rotate every 15s so an integrator can watch it work without waiting.
+// A slot that fails to fill must keep trying, or one transient miss costs the
+// publisher that slot for the whole session. Retry is deliberately independent
+// of the rotation cadence: rotation is off by default, so a slot with no
+// cadence would otherwise never recover.
+export const FILL_RETRY_MAX_BACKOFF_SECONDS = 300;
+
 export const MIN_REFRESH_SECONDS = 30;
 export const MIN_REFRESH_SECONDS_TEST = 15;
 
