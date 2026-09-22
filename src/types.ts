@@ -18,6 +18,7 @@ export type SdkPlatform = "web" | "flutter" | "android" | "ios";
 
 export interface NativeAssets {
   title?: string;
+  alt_text?: string;
   body?: string;
   cta_text?: string;
   sponsored_by?: string;

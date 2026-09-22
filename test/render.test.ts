@@ -186,3 +186,54 @@ describe("renderCarousel", () => {
     expect(container.querySelector(".adpluga-carousel")).toBeNull();
   });
 });
+
+// An ad image is never decorative: it carries meaning and sits inside a link.
+// Rendered with alt="" the link has no accessible name at all, which fails
+// WCAG 2.2 SC 1.1.1 and SC 2.4.4 — both level A. Every creative that paints an
+// <img> has to answer for its alternative text.
+describe("alternative text", () => {
+  const baseImage: AdView = {
+    id: "ad-img",
+    type: "image",
+    asset_url: "https://cdn.example/banner.png",
+    width: 300,
+    height: 250,
+    format: "display",
+  };
+
+  it("uses the advertiser's alternative text", () => {
+    const { ctx, container } = ctxWith();
+    renderCreative({ ...baseImage, alt_text: "Perfumes com 20% de desconto" }, ctx);
+    expect(container.querySelector("img")?.alt).toBe("Perfumes com 20% de desconto");
+  });
+
+  it("falls back to the title when there is no alternative text", () => {
+    const { ctx, container } = ctxWith();
+    renderCreative({ ...baseImage, title: "Promo Outono" }, ctx);
+    expect(container.querySelector("img")?.alt).toBe("Promo Outono");
+  });
+
+  it("never leaves the image without a name", () => {
+    const { ctx, container } = ctxWith();
+    renderCreative(baseImage, ctx);
+    expect(container.querySelector("img")?.alt).not.toBe("");
+  });
+
+  it("gives a carousel slide without a title the ad's alternative text", () => {
+    const { ctx, container } = ctxWith();
+    renderCreative(
+      {
+        ...baseImage,
+        type: "carousel",
+        alt_text: "Campanha de verão",
+        slides: [
+          { asset_url: "https://cdn.example/1.png", title: "Perfumes" },
+          { asset_url: "https://cdn.example/2.png" },
+        ],
+      },
+      ctx,
+    );
+    const alts = [...container.querySelectorAll("img")].map((i) => i.alt);
+    expect(alts).toEqual(["Perfumes", "Campanha de verão"]);
+  });
+});

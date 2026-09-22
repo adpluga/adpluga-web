@@ -21,6 +21,14 @@ function resolveQuartileUrl(url: string | undefined, apiBase: string | undefined
   }
 }
 
+// An ad is never decorative: it carries meaning and wraps a link, so an empty
+// alt leaves a screen reader announcing a link with no name at all (WCAG 2.2
+// SC 1.1.1 and SC 2.4.4, both level A). Falls back to the title when the
+// advertiser wrote no alternative text.
+function altOf(ad: { alt_text?: string | null; title?: string | null }): string {
+  return ad.alt_text || ad.title || "Anuncio";
+}
+
 export function renderCreative(ad: AdView, ctx: RenderContext): RenderTeardown {
   switch (ad.type) {
     case "image":
@@ -51,7 +59,7 @@ function renderImage(ad: AdView, ctx: RenderContext): RenderTeardown {
   link.style.lineHeight = "0";
   const img = document.createElement("img");
   img.src = ad.asset_url ?? "";
-  img.alt = "";
+  img.alt = altOf(ad);
   img.decoding = "async";
   img.loading = "lazy";
   if (ad.width) img.width = ad.width;
@@ -111,7 +119,7 @@ function renderCarousel(ad: AdView, ctx: RenderContext): RenderTeardown {
     const img = document.createElement("img");
     img.className = "adpluga-carousel__image";
     img.src = slide.asset_url;
-    img.alt = slide.title ?? "";
+    img.alt = slide.title || altOf(ad);
     img.decoding = "async";
     img.loading = i === 0 ? "eager" : "lazy";
     if (ad.width) img.width = ad.width;
@@ -214,7 +222,7 @@ function renderNative(ad: AdView, ctx: RenderContext): RenderTeardown {
     const cover = document.createElement("img");
     cover.className = "adpluga-native__image";
     cover.src = mainImageUrl;
-    cover.alt = "";
+    cover.alt = altOf(ad);
     cover.decoding = "async";
     cover.loading = "lazy";
     article.appendChild(cover);
@@ -410,7 +418,7 @@ function renderAudio(ad: AdView, ctx: RenderContext): RenderTeardown {
     link.style.lineHeight = "0";
     const img = document.createElement("img");
     img.src = companion;
-    img.alt = "";
+    img.alt = altOf(ad);
     img.decoding = "async";
     img.style.width = "100%";
     img.style.height = "auto";
