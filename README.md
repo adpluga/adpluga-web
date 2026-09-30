@@ -29,25 +29,38 @@ npm install @adpluga/web
 pnpm add @adpluga/web
 ```
 
-## Quick start (TypeScript / ESM)
+## Quick start: the web component
+
+Importing `@adpluga/web/element` registers `<adpluga-slot>`; the element starts the client from its own key.
 
 ```ts
-import { AdPluga } from '@adpluga/web';
-
-const client = new AdPluga({ publisherKey: 'pk_test_...' });
-const ad = await client.serve({ slotId: 'slot_home', format: 'banner_320x100' });
-if (ad) client.mount(ad, document.getElementById('ad-slot')!);
+import "@adpluga/web/element";
 ```
 
-## Web Component (zero-JS embed)
+```html
+<adpluga-slot publishable-key="pk_test_..." slot="your-slot-id" lazy></adpluga-slot>
+```
+
+Without a bundler, load the prebuilt bundle:
 
 ```html
-<script type="module" src="https://cdn.adpluga.com/v1/adpluga.js"></script>
-<adpluga-ad
-    publisher-key="pk_test_..."
-    slot-id="slot_home"
-    format="banner_320x100">
-</adpluga-ad>
+<script src="https://cdn.jsdelivr.net/npm/@adpluga/web@0.7.2/dist/element.global.js"></script>
+<adpluga-slot publishable-key="pk_test_..." slot="your-slot-id" lazy></adpluga-slot>
+```
+
+Attributes: `publishable-key`, `slot` (id or name), `format` (a size hint such as `300x250`), `lazy`, `autoload="false"`. In TSX, declare the element once in `JSX.IntrinsicElements`; the package does not ship those types.
+
+## Programmatic client
+
+```ts
+import { initialize } from "@adpluga/web";
+
+const client = initialize({ publisherKey: "pk_test_..." });
+const resp = await client.serve("your-slot-id", { format: "300x250" });
+if (resp) {
+  // render resp.ad yourself, then report what happened
+  client.fireImpression(resp, "your-slot-id");
+}
 ```
 
 Integration guides and API reference: <https://adpluga.com/en/devs/sdks/> · quick start in two minutes: <https://adpluga.com/en/devs/quickstart/>.
