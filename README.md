@@ -10,6 +10,15 @@ integration.
 - **Provenance**: signed via npm attestations
 - **License**: Proprietary — see [LICENSE](./LICENSE)
 
+## Why AdPluga
+
+- **100,000 ad decisions free every month.** No card, no expiry.
+- **No traffic minimum.** When there is no demand, a house ad fills the slot so it never renders empty.
+- **Test mode first.** A `pk_test_` key serves ads with no billing and no quota use; switch to `pk_live_` when you are ready.
+- **One integration, every demand source.** Direct deals, network demand and mediation behind the same slot.
+
+Create a free account at <https://adpluga.com/en/> and get your keys in the dashboard.
+
 ## Install
 
 ```bash
@@ -25,7 +34,7 @@ pnpm add @adpluga/web
 ```ts
 import { AdPluga } from '@adpluga/web';
 
-const client = new AdPluga({ publisherKey: 'pk_live_...' });
+const client = new AdPluga({ publisherKey: 'pk_test_...' });
 const ad = await client.serve({ slotId: 'slot_home', format: 'banner_320x100' });
 if (ad) client.mount(ad, document.getElementById('ad-slot')!);
 ```
@@ -35,13 +44,13 @@ if (ad) client.mount(ad, document.getElementById('ad-slot')!);
 ```html
 <script type="module" src="https://cdn.adpluga.com/v1/adpluga.js"></script>
 <adpluga-ad
-    publisher-key="pk_live_..."
+    publisher-key="pk_test_..."
     slot-id="slot_home"
     format="banner_320x100">
 </adpluga-ad>
 ```
 
-Full API reference and integration guides: <https://app.adpluga.com/docs/sdk/web>.
+Integration guides and API reference: <https://adpluga.com/en/devs/sdks/> · quick start in two minutes: <https://adpluga.com/en/devs/quickstart/>.
 
 ## Support
 
