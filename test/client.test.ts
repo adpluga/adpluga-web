@@ -176,6 +176,35 @@ describe("AdPlugaClient", () => {
     client.destroy();
   });
 
+  it("fires the bidder's impression and click trackers with ours", () => {
+    vi.stubGlobal("navigator", { ...globalThis.navigator, sendBeacon: vi.fn(() => true) });
+    const client = new AdPlugaClient({
+      publisherKey: "pk_test_abc",
+      endpoint: "https://edge.example/v1/",
+      fetch: fetchMock as unknown as typeof fetch,
+    });
+    const mediation = {
+      ...fixtureDisplay,
+      ad: {
+        ...fixtureDisplay.ad,
+        impression_trackers: ["https://ssp.example/imp", "https://ssp.example/imp2"],
+        click_trackers: ["https://ssp.example/clk"],
+      },
+    } as unknown as ServeResponse;
+
+    client.fireImpression(mediation, "slot_x");
+    expect(calls.filter((c) => c.url.startsWith("https://ssp.example/imp")).map((c) => c.url)).toEqual([
+      "https://ssp.example/imp",
+      "https://ssp.example/imp2",
+    ]);
+    expect(calls.some((c) => c.url === "https://ssp.example/clk")).toBe(false);
+
+    client.fireClick(mediation, "slot_x");
+    expect(calls.some((c) => c.url === "https://ssp.example/clk")).toBe(true);
+    vi.unstubAllGlobals();
+    client.destroy();
+  });
+
   it("posts the viewable and no bidder beacon for a first-party fill", () => {
     const sendBeacon = vi.fn(() => true);
     vi.stubGlobal("navigator", { ...globalThis.navigator, sendBeacon });

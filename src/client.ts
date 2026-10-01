@@ -134,6 +134,7 @@ export class AdPlugaClient {
   fireImpression(resp: ServeResponse, slotId: string): void {
     if (this.disposed) return;
     postTrack(this.base, { token: resp.track_token, event: "impression" }, this.fetchImpl);
+    for (const url of resp.ad.impression_trackers ?? []) fireBeacon(url, this.fetchImpl);
     this.telemetry.record("impression");
     this.emit({ kind: "impression", slotId, adId: resp.ad.id });
   }
@@ -154,6 +155,7 @@ export class AdPlugaClient {
   fireClick(resp: ServeResponse, slotId: string): void {
     if (this.disposed) return;
     postTrack(this.base, { token: resp.track_token, event: "click" }, this.fetchImpl);
+    for (const url of resp.ad.click_trackers ?? []) fireBeacon(url, this.fetchImpl);
     this.telemetry.record("click");
     this.emit({ kind: "click", slotId, adId: resp.ad.id });
   }

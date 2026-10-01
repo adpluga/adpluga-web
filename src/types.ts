@@ -57,6 +57,10 @@ export interface AdView {
   asset_url?: string | null;
   html?: string | null;
   billing_url?: string | null;
+  // A mediation bidder's own pixels, fired with our impression and click so
+  // the SSP counts (and pays for) what it served.
+  impression_trackers?: string[] | null;
+  click_trackers?: string[] | null;
   // Deprecated: the serve contract emits native assets as flat top-level
   // fields (title/body/cta_text/sponsored_by/icon_url/main_image_url).
   // Kept only as a defensive fallback for older responses.
