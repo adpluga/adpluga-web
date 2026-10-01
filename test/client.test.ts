@@ -223,4 +223,25 @@ describe("AdPlugaClient", () => {
     client.destroy();
   });
 
+
+  // Regression: consent was collected but never sent, so mediation bid
+  // requests left without GDPR applicability or the TCF string.
+  it.each([
+    { name: "GDPR applies with a TC string", consent: { gdprApplies: true, tcString: "CPXxRfAPXxRfAAfKABENB-CgAAAAAAAAAAYgAAAAAAAA" }, gdpr: "1", header: "CPXxRfAPXxRfAAfKABENB-CgAAAAAAAAAAYgAAAAAAAA" },
+    { name: "GDPR does not apply", consent: { gdprApplies: false }, gdpr: "0", header: undefined },
+    { name: "nothing known", consent: {}, gdpr: null, header: undefined },
+    { name: "blank TC string", consent: { gdprApplies: true, tcString: "  " }, gdpr: "1", header: undefined },
+  ])("forwards consent: $name", async ({ consent, gdpr, header }) => {
+    const client = new AdPlugaClient({
+      publisherKey: "pk_test_abc",
+      endpoint: "https://edge.example/v1/",
+      fetch: fetchMock as unknown as typeof fetch,
+      consent,
+    });
+    await client.serve("slot_x");
+    const serveCall = calls.find((c) => c.url.includes("/serve"));
+    expect(new URL(serveCall!.url).searchParams.get("gdpr")).toBe(gdpr);
+    expect((serveCall!.init!.headers as Record<string, string>)["X-Consent-String"]).toBe(header);
+    client.destroy();
+  });
 });

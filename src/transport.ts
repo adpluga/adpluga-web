@@ -1,4 +1,5 @@
 import {
+  HEADER_CONSENT,
   HEADER_KEY,
   HEADER_MIN_SDK,
   RETRY_BASE_BACKOFF_MS,
@@ -29,6 +30,10 @@ export interface ServeRequest {
   format?: string;
   refreshSeq?: number;
   nonPersonalized?: boolean;
+  /** 1 when GDPR applies, 0 when it does not; omitted when unknown. */
+  gdpr?: 0 | 1;
+  /** IAB TCF v2 TC string, forwarded to mediation networks. */
+  consentString?: string;
   signal?: AbortSignal;
 }
 
@@ -68,6 +73,13 @@ export async function fetchServe(req: ServeRequest, fetchImpl: FetchFn = fetch):
   if (req.format) url.searchParams.set("fmt", req.format);
   if (req.refreshSeq) url.searchParams.set("rq", String(req.refreshSeq));
   if (req.nonPersonalized) url.searchParams.set("non_personalized", "true");
+  if (req.gdpr !== undefined) url.searchParams.set("gdpr", String(req.gdpr));
+  const headers: Record<string, string> = {
+    [HEADER_KEY]: req.key,
+    [HEADER_MIN_SDK]: SDK_VERSION,
+    Accept: "application/json",
+  };
+  if (req.consentString) headers[HEADER_CONSENT] = req.consentString;
 
   let attempt = 0;
   let lastError: unknown;
@@ -77,11 +89,7 @@ export async function fetchServe(req: ServeRequest, fetchImpl: FetchFn = fetch):
         (signal) =>
           fetchImpl(url.toString(), {
             method: "GET",
-            headers: {
-              [HEADER_KEY]: req.key,
-              [HEADER_MIN_SDK]: SDK_VERSION,
-              Accept: "application/json",
-            },
+            headers,
             mode: "cors",
             credentials: "omit",
             cache: "no-store",

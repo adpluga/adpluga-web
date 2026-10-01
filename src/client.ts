@@ -105,6 +105,10 @@ export class AdPlugaClient {
       if (opts.format !== undefined) req.format = opts.format;
       if (opts.refreshSeq) req.refreshSeq = opts.refreshSeq;
       if (!this.consent.isPersonalized()) req.nonPersonalized = true;
+      const consent = this.consent.snapshot;
+      if (consent.gdprApplies !== undefined) req.gdpr = consent.gdprApplies ? 1 : 0;
+      const tc = consent.tcString?.trim();
+      if (tc) req.consentString = tc;
       if (opts.signal) req.signal = opts.signal;
       const resp = await fetchServe(req, this.fetchImpl);
       const latency = Math.max(0, (performance?.now?.() ?? Date.now()) - started);

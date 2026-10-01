@@ -1,4 +1,4 @@
-export const SDK_VERSION = "0.7.2";
+export const SDK_VERSION = "0.7.3";
 export const SDK_PLATFORM = "web";
 
 export const DEFAULT_ENDPOINT = "https://edge.adpluga.com/v1/";
@@ -42,3 +42,4 @@ export const ATTR_LAZY = "lazy";
 export const ATTR_AUTOLOAD = "autoload";
 
 export const STORAGE_UID_KEY = "adpluga_uid";
+export const HEADER_CONSENT = "X-Consent-String";

@@ -8,7 +8,7 @@ integration.
 - **Package**: [`@adpluga/web`](https://www.npmjs.com/package/@adpluga/web) on npm
 - **Node**: `>=18.17.0`
 - **Provenance**: signed via npm attestations
-- **License**: Proprietary — see [LICENSE](./LICENSE)
+- **License**: Apache-2.0 — see [LICENSE](./LICENSE)
 
 ## Why AdPluga
 
