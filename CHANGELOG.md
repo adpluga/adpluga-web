@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   The SSP counts the impression it pays for from its VAST `<Impression>` or
   native `imptrackers`, which were never fired before.
 
+### Fixed
+- The `AdSource` type listed `external` and `self`, which the server never
+  sends, and missed `deal`, `mediation`, `platform_mediation` and `test`.
+
+
 ## [0.7.3] — 2026-10
 
 ### Changed

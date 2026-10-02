@@ -1,4 +1,11 @@
-export type AdSource = "house" | "pool" | "direto" | "external" | "self";
+export type AdSource =
+  | "house"
+  | "pool"
+  | "direto"
+  | "deal"
+  | "mediation"
+  | "platform_mediation"
+  | "test";
 
 export type CreativeType = "image" | "html" | "native" | "video" | "video_rewarded" | "video_vast" | "audio" | "template" | "carousel";
 
