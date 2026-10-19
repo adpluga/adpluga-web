@@ -82,6 +82,47 @@ describe("AdPlugaClient", () => {
     client.destroy();
   });
 
+  // The identifier was written to localStorage at construction, before any
+  // consent was known. Under the GDPR it now needs purpose 1.
+  it.each([
+    ["gdpr unknown", {}, true],
+    ["gdpr off", { gdprApplies: false }, true],
+    ["gdpr without string", { gdprApplies: true }, false],
+    ["gdpr without purpose 1", { gdprApplies: true, tcString: "CQsVacAQsVacAAKABBENCWFAAHIAAAAAAB6YADgIAAAAAAAA" }, false],
+    ["gdpr with purpose 1", { gdprApplies: true, tcString: "CQsVacAQsVacAAKABBENCWFAAPJAAAAAAB6YADgIAAAAAAAA" }, true],
+    ["personalisation off", { adPersonalization: false }, false],
+  ])("keeps the stored id only with consent: %s", async (_name, consent, stored) => {
+    window.localStorage.clear();
+    const client = new AdPlugaClient({
+      publisherKey: "pk_test_abc",
+      endpoint: "https://edge.example/v1/",
+      fetch: fetchMock as unknown as typeof fetch,
+      consent,
+    });
+    expect(window.localStorage.getItem("adpluga_uid")).toBeNull();
+    await client.serve("slot_x");
+    const serveUrl = new URL(calls.find((c) => c.url.includes("/serve"))?.url ?? "");
+    expect(serveUrl.searchParams.has("u")).toBe(stored);
+    expect(window.localStorage.getItem("adpluga_uid") !== null).toBe(stored);
+    client.destroy();
+  });
+
+  it("sends a publisher-supplied id without touching storage", async () => {
+    window.localStorage.clear();
+    const client = new AdPlugaClient({
+      publisherKey: "pk_test_abc",
+      endpoint: "https://edge.example/v1/",
+      fetch: fetchMock as unknown as typeof fetch,
+      userId: "pub-123",
+      consent: { gdprApplies: true },
+    });
+    await client.serve("slot_x");
+    const serveUrl = new URL(calls.find((c) => c.url.includes("/serve"))?.url ?? "");
+    expect(serveUrl.searchParams.get("u")).toBe("pub-123");
+    expect(window.localStorage.getItem("adpluga_uid")).toBeNull();
+    client.destroy();
+  });
+
   it("fireViewable posts /v1/track/viewable with the served track token", async () => {
     const beaconCalls: Array<{ url: string; body: string }> = [];
     const nav = globalThis.navigator as Navigator & { sendBeacon: (u: string, d?: unknown) => boolean };

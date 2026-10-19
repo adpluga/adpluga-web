@@ -1,3 +1,4 @@
+import { purposeConsent } from "./tcf";
 import type { ConsentState } from "./types";
 
 type Listener = (state: ConsentState) => void;
@@ -37,6 +38,14 @@ export class ConsentStore {
   // flag is explicitly false we hint the backend to serve HOUSE-safe creatives.
   isPersonalized(): boolean {
     return this.state.adPersonalization !== false;
+  }
+
+  // The identifier lives on the device, so under the GDPR it needs consent to
+  // TCF purpose 1 (store and/or access information on a device).
+  allowsStorage(): boolean {
+    if (!this.isPersonalized()) return false;
+    if (this.state.gdprApplies !== true) return true;
+    return purposeConsent(this.state.tcString, 1);
   }
 }
 

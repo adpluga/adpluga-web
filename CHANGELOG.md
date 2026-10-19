@@ -4,6 +4,18 @@ All notable changes to the AdPluga Web SDK are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.7.5] — 2026-10
+
+### Fixed
+- The SDK wrote its identifier (`adpluga_uid`) to `localStorage` as soon as
+  the client was created, before any consent was known. It is now created on
+  the first ad request and only when consent allows it: when `gdprApplies` is
+  true the TCF string must carry consent to purpose 1, and never when
+  `adPersonalization` is false. An id passed as `userId` is sent as given.
+- `setUserId(undefined)` falls back to the consent rule above instead of
+  creating a stored id.
+
+
 ## [0.7.4] — 2026-10
 
 ### Added

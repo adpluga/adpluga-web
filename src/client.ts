@@ -19,7 +19,8 @@ type FetchFn = typeof fetch;
 export class AdPlugaClient {
   private readonly base: string;
   private readonly fetchImpl: FetchFn;
-  private userId: string;
+  private explicitUserId: string | undefined;
+  private storedUserId: string | undefined;
   private readonly consent = new ConsentStore();
   private readonly features: FeaturesCache;
   private readonly telemetry: TelemetryBatcher;
@@ -33,7 +34,7 @@ export class AdPlugaClient {
     if (!opts.publisherKey) throw new Error("publisher_key_required");
     this.base = normalizeBase(opts.endpoint ?? DEFAULT_ENDPOINT);
     this.fetchImpl = opts.fetch ?? fetch;
-    this.userId = opts.userId ?? readOrCreateUid();
+    this.explicitUserId = opts.userId;
     if (opts.consent) this.consent.update(opts.consent);
     this.features = new FeaturesCache(this.base, this.fetchImpl);
     this.telemetry = new TelemetryBatcher(this.base, opts.publisherKey, this.fetchImpl);
@@ -75,7 +76,7 @@ export class AdPlugaClient {
 
   setUserId(id: string | undefined): void {
     if (this.disposed) return;
-    this.userId = id ?? readOrCreateUid();
+    this.explicitUserId = id;
   }
 
   on(fn: (e: SdkClientEvent) => void): () => void {
@@ -91,6 +92,15 @@ export class AdPlugaClient {
     return this.features.ensure();
   }
 
+  // The SDK's own identifier is read from and written to localStorage only
+  // when consent allows it; an id the publisher passes is theirs to govern.
+  private resolveUserId(): string | undefined {
+    if (this.explicitUserId) return this.explicitUserId;
+    if (!this.consent.allowsStorage()) return undefined;
+    this.storedUserId ??= readOrCreateUid();
+    return this.storedUserId;
+  }
+
   async serve(slotId: string, opts: ServeOptions = {}): Promise<ServeResponse | undefined> {
     if (this.disposed) return undefined;
     if (this.upgradeRequired) return undefined;
@@ -101,7 +111,8 @@ export class AdPlugaClient {
         key: this.opts.publisherKey,
         slotId,
       };
-      if (this.userId) req.userId = this.userId;
+      const userId = this.resolveUserId();
+      if (userId) req.userId = userId;
       if (opts.format !== undefined) req.format = opts.format;
       if (opts.refreshSeq) req.refreshSeq = opts.refreshSeq;
       if (!this.consent.isPersonalized()) req.nonPersonalized = true;
